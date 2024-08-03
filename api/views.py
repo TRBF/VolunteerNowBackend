@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view 
+from api.serializers import OrganiserSerializer
 from volunteering.services import ExperienceService, EventService, VolunteerService, OrganiserService, NotificationService
 
 # ----------- EXPERIENCE ----------
@@ -121,6 +122,44 @@ def add_notification(request):
     service = NotificationService()
     print(request.data)
     return Response(service.add_from_request_data(request.data))
+
+# ----------- MANY TO MANY ----------
+
+@api_view(['GET'])
+def get_volunteers_of_event(request, event_id):
+    service = EventService()
+    return Response(service.get_event_volunteers(event_id))
+
+@api_view(['GET'])
+def get_organisers_of_event(request, event_id):
+    service = EventService()
+    return Response(service.get_event_organisers(event_id))
+
+@api_view(['GET'])
+def get_events_of_volunteer(request, volunteer_id):
+    service = VolunteerService()
+    return Response(service.get_events_of_volunteer(volunteer_id))
+
+@api_view(['GET'])
+def get_events_of_organiser(request, organiser_id):
+    service = OrganiserService()
+    return Response(service.get_events_of_organiser(organiser_id))
+
+@api_view(['POST'])
+def add_volunteer_to_event(request):
+    service = EventService()
+    return Response(service.add_event_volunteer(**request.data))
+
+@api_view(['POST'])
+def add_organiser_to_event(request):
+    service = EventService()
+    return Response(service.add_event_organiser(**request.data))
+
+
+
+
+
+
 
 # ---------------------------- OLD ----------------------------
 #
