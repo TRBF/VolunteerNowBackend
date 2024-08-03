@@ -63,6 +63,11 @@ class EventService(BaseService):
     def __init__(self):
         super().__init__(Event, EventSerializer)
 
+class OrganiserService(BaseService):
+    
+    def __init__(self):
+        super().__init__(Organiser, OrganiserSerializer)
+
 class ExperienceService(BaseService):
     
     def __init__(self):
