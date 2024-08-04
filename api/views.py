@@ -127,23 +127,27 @@ def add_notification(request):
 
 @api_view(['GET'])
 def get_volunteers_of_event(request, event_id):
-    service = EventService()
-    return Response(service.get_event_volunteers(event_id))
+    eventService = EventService()
+    volunteerService = VolunteerService()
+    return Response(volunteerService.serialize(eventService.get_event_volunteers(event_id)))
 
 @api_view(['GET'])
 def get_organisers_of_event(request, event_id):
-    service = EventService()
-    return Response(service.get_event_organisers(event_id))
+    eventService = EventService()
+    organiserService = OrganiserService()
+    return Response(organiserService.serialize(eventService.get_event_organisers(event_id)))
 
 @api_view(['GET'])
 def get_events_of_volunteer(request, volunteer_id):
-    service = VolunteerService()
-    return Response(service.get_events_of_volunteer(volunteer_id))
+    eventService = EventService()
+    volunteerService = VolunteerService()
+    return Response(eventService.serialize(volunteerService.get_events_of_volunteer(volunteer_id)))
 
 @api_view(['GET'])
 def get_events_of_organiser(request, organiser_id):
-    service = OrganiserService()
-    return Response(service.get_events_of_organiser(organiser_id))
+    eventService = EventService()
+    organiserService = OrganiserService()
+    return Response(eventService.serialize(organiserService.get_events_of_organiser(organiser_id)))
 
 @api_view(['POST'])
 def add_volunteer_to_event(request):
@@ -155,11 +159,17 @@ def add_organiser_to_event(request):
     service = EventService()
     return Response(service.add_event_organiser(**request.data))
 
+@api_view(['GET'])
+def search(request, query):
+    pass
 
+@api_view(['GET'])
+def search_tag(request, tag):
+    pass
 
-
-
-
+@api_view(['GET'])
+def search_model(request, model, query): 
+    pass
 
 # ---------------------------- OLD ----------------------------
 #

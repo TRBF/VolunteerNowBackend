@@ -1,28 +1,38 @@
 from typing import List
 from django.db import models
+from django.http.response import Http404
 from django.shortcuts import get_list_or_404, get_object_or_404
+from django.apps import apps
 from rest_framework import serializers
-
+import typing
 from .models import Experience, Event, Volunteer, Organiser, Notification
 from api.serializers import ExperienceSerializer, EventSerializer, VolunteerSerializer, OrganiserSerializer, NotificationSerializer
 
+M = typing.TypeVar("M", bound=type[models.base.Model])
+S = typing.TypeVar("S", bound=serializers.SerializerMetaclass)
 
-class BaseService():
 
-    def __init__(self, model, serializer):
-        self._model: models.base.Model = model
-        self._serializer: serializers.SerializerMetaclass = serializer 
+class BaseService(typing.Generic[M, S]):
+    def __init__(self, model: M, serializer: S):
+        self._model: M = model
+        self._serializer: S = serializer 
 
     def get_all(self):
         return self._model.objects.all()
 
-    def get_with_pk(self, pk):
-        queryset = self._model.objects.filter(pk=pk) 
-        return get_object_or_404(queryset)
+    def get_with_pk(self, pk: int) -> M:
+        try:
+            instance: M = self._model.objects.filter(pk=pk) 
+            return instance[0]        
+        except self._model.DoesNotExist:
+            raise Http404("Given query not found...") 
 
-    def get_where(self, **object_data):
-        queryset = self._model.objects.filter(**object_data) 
-        return get_list_or_404(queryset) 
+    def get_where(self, **object_data) -> M:
+        try:
+            instances: M = self._model.objects.filter(**object_data) 
+            return instances        
+        except self._model.DoesNotExist:
+            raise Http404("Given query not found...") 
 
     def add(self, **object_data):
         self._model.objects.create(**object_data)
@@ -56,15 +66,15 @@ class BaseService():
             return self.serialize_one(instances)
 
 
+
 class VolunteerService(BaseService):
     
     def __init__(self):
         super().__init__(Volunteer, VolunteerSerializer)
 
     def get_events_of_volunteer(self, volunteer_id):
-        eventService = EventService()
         volunteer: Volunteer = self.get_with_pk(volunteer_id)
-        return eventService.serialize(volunteer.event_set.all()) 
+        return volunteer.event_set.all() 
 
 class OrganiserService(BaseService):
     
@@ -72,9 +82,8 @@ class OrganiserService(BaseService):
         super().__init__(Organiser, OrganiserSerializer)
 
     def get_events_of_organiser(self, organiser_id):
-        eventService = EventService()
-        organiser: Organiser = self.get_with_pk(organiser_id)
-        return eventService.serialize(organiser.event_set.all()) 
+        organiser = self.get_with_pk(organiser_id)
+        return organiser.event_set.all() 
 
 
 
@@ -86,24 +95,25 @@ class EventService(BaseService):
     def get_event_volunteers(self, event_id):
         volunteerService = VolunteerService()
         event: Event = self.get_with_pk(event_id)
-        return volunteerService.serialize(event.volunteers.all()) 
+        return event.volunteers.all() 
 
     def get_event_organisers(self, event_id):
         organiserService = OrganiserService()
         event: Event = self.get_with_pk(event_id)
-        return organiserService.serialize(event.organisers.all()) 
+        return event.organisers.all() 
 
     def add_event_volunteer(self, **data):
         volunteerService = VolunteerService()
         event: Event = self.get_with_pk(data["event_id"])
         volunteer: Volunteer = volunteerService.get_with_pk(data["volunteer_id"])
-        return self.serialize(event.volunteers.add(volunteer))
+        return event.volunteers.add(volunteer)
 
     def add_event_organiser(self, **data):
         organiserService = OrganiserService()
         event: Event = self.get_with_pk(data["event_id"])
-        organiser: Organiser = OrganiserService.get_with_pk(data["organiser_id"])
-        return self.serialize(event.organisers.add(organiser))
+        organiser: Organiser = organiserService.get_with_pk(pk=data["organiser_id"])
+        return event.organisers.add(organiser)
+
 class ExperienceService(BaseService):
     
     def __init__(self):
@@ -113,3 +123,19 @@ class NotificationService(BaseService):
     
     def __init__(self):
         super().__init__(Notification, NotificationSerializer)
+
+class SearchService:
+    
+    # def search(self, query, *model_names):
+    #     result = models.QuerySet()
+    #     model_list = app.get_models()
+    #     for available_model in model_list:
+    #         for queried_model in model_names:
+    #             if(available_model==queried_model):
+    #                 result+=available_model.get_where()
+
+    def search(self, query):
+        eventService = EventService()
+        volunteerService = VolunteerService()
+        result = models.QuerySet()
+

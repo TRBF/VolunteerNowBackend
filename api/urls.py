@@ -39,4 +39,9 @@ urlpatterns = [
     path('get_events_of_organiser/<int:organiser_id>', views.get_events_of_organiser),
     path('add_volunteer_to_event/', views.add_volunteer_to_event),
     path('add_organiser_to_event/', views.add_organiser_to_event),
+
+    # --- GENERALISED --- 
+    path('search/<str:query>', views.search),
+    path('search_tag/<str:tag>', views.search_tag),
+    path('search_volunteers/<str:model>/<str:query>', views.search_model),
 ]
