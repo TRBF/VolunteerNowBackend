@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view 
 from api.serializers import OrganiserSerializer
-from volunteering.services import ExperienceService, EventService, VolunteerService, OrganiserService, NotificationService
+from volunteering.services import ExperienceService, EventService, SearchService, VolunteerService, OrganiserService, NotificationService
 
 # ----------- EXPERIENCE ----------
 
@@ -161,15 +161,25 @@ def add_organiser_to_event(request):
 
 @api_view(['GET'])
 def search(request, query):
-    pass
+    service = SearchService()
+    return Response(service.search(query))
 
 @api_view(['GET'])
 def search_tag(request, tag):
-    pass
+    service = SearchService()
+    return Response(service.search_tag(tag))
 
 @api_view(['GET'])
-def search_model(request, model, query): 
-    pass
+def get_volunteer_notification(request, volunteer_id):
+    volunteerService = VolunteerService()
+    notificationService = NotificationService()
+    return Response(notificationService.serialize(volunteerService.get_volunteer_notifications(volunteer_id)))
+
+@api_view(['GET'])
+def get_volunteer_experiences(request, volunteer_id):
+    volunteerService = VolunteerService()
+    experienceService = ExperienceService()
+    return Response(experienceService.serialize(volunteerService.get_volunteer_experiences(volunteer_id)))
 
 # ---------------------------- OLD ----------------------------
 #

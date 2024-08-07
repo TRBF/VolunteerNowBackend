@@ -72,17 +72,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'VolunteerNowBackend.wsgi.application'
 
-
+# -------------------------------------------------
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+#
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
@@ -90,11 +90,21 @@ DATABASES = {
 #             "service": "my_service",
 #             "passfile": ".my_pgpass",
 #         },
-#         # 'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 #
 # }
+# -------------------------------------------------
 
+DATABASES = {
+      "default": {
+          "ENGINE": "django.db.backends.postgresql_psycopg2",
+          "NAME": "volunteernowdatabase",
+          "USER": "volunteernowadmin",
+          "PASSWORD": "volunteerNow2024",
+          "HOST": "localhost",
+          "PORT": "",
+      }
+  }
 
 
 # Password validation

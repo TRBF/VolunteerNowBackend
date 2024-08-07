@@ -1,6 +1,29 @@
 from django.db import models
 from django.utils import timezone 
 
+class Experience(models.Model):
+    
+    # identification
+    name = models.CharField(max_length=200)
+    time = models.DateTimeField(default=timezone.now)
+    location = models.CharField(max_length=300, blank=True)
+
+    # customized details
+    description = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return f"Experience: {self.name}, at {self.time}: {self.description}"
+
+class Notification(models.Model):
+    
+    title = models.CharField(max_length=200, blank=True)
+    time = models.DateTimeField(default=timezone.now)
+    description = models.CharField(max_length=300, blank=True)
+
+    def __str__(self):
+        return f"Notification: {self.title}, at {self.time}: {self.description}"
+
+
 class Volunteer(models.Model):
     
     #control
@@ -22,8 +45,12 @@ class Volunteer(models.Model):
     hours_of_volunteering = models.FloatField(default=0)
     account_creation_date = models.DateField(default=timezone.localtime(timezone.now()).date())
 
+    #relationships
+    notifications = models.ManyToManyField(Notification, blank=True)
+    experiences = models.ManyToManyField(Experience, blank=True)
+
     def __str__(self):
-        return f"@{self.username} ({self.first_name} {self.last_name})"
+        return f"Volunteer: @{self.username} ({self.first_name} {self.last_name})"
 
 class Organiser(models.Model):
      
@@ -43,7 +70,7 @@ class Organiser(models.Model):
     account_creation_date = models.DateField(default=timezone.localtime(timezone.now()).date())
 
     def __str__(self):
-        return f"@{self.username} ({self.name})"
+        return f"Organiser: @{self.username} ({self.name})"
 
 class Event(models.Model):
     
@@ -66,25 +93,6 @@ class Event(models.Model):
     organisers = models.ManyToManyField(Organiser, blank=True)
 
     def __str__(self):
-        return f"{self.name}, at {self.time} {self.location}"
+        return f"Event: {self.name}, at {self.time} {self.location}"
 
-class Experience(models.Model):
-    
-    # identification
-    name = models.CharField(max_length=200)
-    time = models.DateTimeField(default=timezone.now)
-    location = models.CharField(max_length=300, blank=True)
-
-    # customized details
-    description = models.CharField(max_length=1000)
-
-class Notification(models.Model):
-    
-    title = models.CharField(max_length=200, blank=True)
-    time = models.DateTimeField(default=timezone.now)
-    description = models.CharField(max_length=300, blank=True)
-    organiser = models.ForeignKey(Organiser, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.title} by {self.organiser}, at {self.time}: {self.description}"
 
