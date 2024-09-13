@@ -37,23 +37,41 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         return c.json(success({token: token}));
     });
     app.post('/api/register', async (c) => {
-        const {username, password, gender, first_name, last_name, email} = await c.req.json();
-        // create password salt and hash password with it
-        var pass_salt = makeid(12);
-        var pass_hash = createHash('sha256').update(password + pass_salt).digest('hex');
-        // create account verification token
-        var verifyToken = makeid(64);
-        await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName) VALUES (?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name]);
-        // send email
-        mailTransporter.sendMail({
-            from: 'volunteernowwastaken@gmail.com',
-            to: email,
-            subject: 'Verify your email address',
-            text: 'Please verify your account by visiting the following link: <link>/api/verify/' + verifyToken
-        });
-        return c.text("OK");
+        try {
+            const {username, password, gender, first_name, last_name, email} = await c.req.json();
+            if(username == null || password == null || gender == null || first_name == null || last_name == null || email == null) return c.json(fail("invalid json parameters"));
+            // check username valid
+            if(!(/^[a-z0-9.]+$/.test(username))) return c.json(fail("invalid username"));
+            if(!(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email))) return c.json(fail("invalid email"));
+            // check if username already exists in database
+            if((await db.all("SELECT * FROM users WHERE Username = ? LIMIT 1", [username])).length > 0)
+                return c.json(fail("an account with that username is already registered"));
+            if((await db.all("SELECT * FROM users WHERE Email = ? LIMIT 1", [email])).length > 0)
+                return c.json(fail("an account with that email is already registered"));
+            // create password salt and hash password with it
+            var pass_salt = makeid(12);
+            var pass_hash = createHash('sha256').update(password + pass_salt).digest('hex');
+            // create account verification token
+            var verifyToken = makeid(64);
+            await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName,CreationDate) VALUES (?,?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name, new Date().getTime() / 1000]);
+            // send email
+            mailTransporter.sendMail({
+                from: 'volunteernowwastaken@gmail.com',
+                to: email,
+                subject: 'Verify your email address',
+                text: 'Please verify your account by visiting the following link: <link>/api/verify/' + verifyToken
+            });
+            return c.json(success(true));
+        } catch {
+            return c.json(fail("invalid json"));
+        }
+        
     });
-    app.post('/api/verify/:vtoken', async (c) => {
-
+    app.get('/api/verify/:vtoken', async (c) => {
+        const {vtoken} = c.req.param();
+        const db_result = await db.all("SELECT ID FROM users WHERE VerifyToken = ?", [vtoken]);
+        if(db_result.length == 0) return c.json(fail("invalid verification token"));
+        await db.all("UPDATE users SET VerifyToken = NULL WHERE ID = ?", [db_result[0].ID]);
+        return c.json(success(true));
     });
 }

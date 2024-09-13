@@ -3,8 +3,11 @@ import { Hono } from 'hono'
 import {serveStatic} from '@hono/node-server/serve-static'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
-import register_experiences_endpoints from './api/experiences'
-import register_authentication_endpoints from './api/login'
+import regep_experiences from './api/experiences'
+import regep_auth from './api/login'
+import regep_events from './api/events'
+import regep_volunteers from './api/volunteers'
+
 import nodemailer from 'nodemailer'
 
 async function main() {
@@ -21,8 +24,11 @@ async function main() {
     });
 
     const app = new Hono()
-    register_experiences_endpoints(app, database)
-    register_authentication_endpoints(app, database, mailTransporter)
+    regep_auth(app, database, mailTransporter)
+    regep_experiences(app, database)
+    regep_events(app, database)
+    regep_volunteers(app, database)
+
 
     const port = 3000
     console.log(`Server is running on port ${port}`)
