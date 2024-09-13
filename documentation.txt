@@ -1,0 +1,56 @@
+Code documentation, backend:
+
+everywhere there is time: unix timestamp                    
+events.ts:
+    api/get_events: 
+                    - type: get
+                    - parameters: none
+                    - return type: json
+    api/get_events: 
+                    - type: get
+                    - parameters: none
+                    - return type: json
+    api/add_event:
+                    - type: post
+                    - parameters: authorization, name, description, link_to_pfp, link_to_cover_image, edition, location, time
+                    - return type: json
+experience.ts:
+    api/get_experiences:
+                    - type: get
+                    - parameters: userid
+                    - return type: json
+    api/get_experience_by_id/:id:
+                    - type: get
+                    - parameters: id
+                    - return type: json
+    api/add_experience:
+                    - type: post
+                    - parameters: authorization, name, description, location, time
+                    - return type: json
+login.ts:
+    makeid:
+                    - type: none
+                    - parameters: number
+                    - return type: let
+    api/login:
+                    - type: get
+                    - parameters: username, password
+                    - return type: json
+    api/register:
+                    - type: post
+                    - parameters: {username, password, gender, first_name, last_name, email
+                    - return type: json
+    api/verify/:vtoken:
+                    - type: get
+                    - parameters: vtoken
+                    - return type: json
+organisers.ts:
+    api/get_organiser_by_id/:id:
+                    - type: get
+                    - parameters: id
+                    - return type: json
+volunteers.ts:
+    api/get_volunteer_by_id/:id:
+                    - type: get
+                    - parameters: id
+                    - return type: json
