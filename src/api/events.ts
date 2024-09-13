@@ -6,7 +6,12 @@ import authorizeUser from './_user_helper'
 
 export default function(app : Hono, db : Database) {
     app.get("/api/get_events", async (c) => {
-        return c.json(success(await db.all("SELECT * FROM events")));
+        const {page} = c.req.query();
+        if(page == null || isNaN(parseInt(page)))
+            return c.json(success(await db.all("SELECT * FROM events ORDER BY ID DESC LIMIT 10")));
+        var offset = parseInt(page) * 10
+        return c.json(success(await db.all("SELECT * FROM events ORDER BY ID DESC LIMIT 10 OFFSET ?", [offset])));
+
     });
     app.get("/api/get_event_by_id/:id", async (c) => {
         const {id} = c.req.param();
@@ -34,5 +39,13 @@ export default function(app : Hono, db : Database) {
         } catch {
             return c.json(fail("invalid json"));
         }
+    });
+
+    app.get("/api/get_organisers_of_event/:id", async (c) => {
+        const {id} = c.req.param();
+        const parse_id = parseInt(id);
+        if(isNaN(parse_id)) return c.json(fail("invalid id"));
+        if((await db.all("SELECT * FROM events WHERE ID = ?", [parse_id])).length == 0) return c.json(fail("invalid id"));
+        return c.json(success(await db.all("SELECT org.ID as ID, org.DisplayName as DisplayName, org.LinkToPFP as LinkToPFP FROM event_organisers ev INNER JOIN users org ON org.ID = ev.OrganiserID WHERE ev.EventID = ?", [id])));
     });
 }
