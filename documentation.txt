@@ -72,3 +72,8 @@ applications.ts:
                     - note: can only be used on rejected applications
     GET  /api/my_applications:
                     - header: 'authorization: <token>'
+assets/assets.ts:
+    POST /api/upload:
+                    - header: 'authorization: <token>'
+                    - form: 'file: <blob>'
+    GET  /assets/<string:asset_hash>
