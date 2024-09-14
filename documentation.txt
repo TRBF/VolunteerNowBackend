@@ -24,8 +24,12 @@ login.ts:
     GET  /api/login?username&password:
                     - GET parameters: username, password
     POST /api/register:
-                    - POST parameters (json object with fields): username, password, gender, first_name, last_name, email, birthday
+                    - POST parameters (json object with fields): username, password, gender, first_name, last_name, email, birthday (time)
     GET  /api/verify/<vtoken>
+    POST /api/modify_proifle:
+                    - header: 'authorization: <token>'
+                    - POST parameters the same story as modify_application_form
+                    - POST paramters available here: DisplayName, Gender, FirstName, LastName, Email, Description, LinkToPFP, LinkToCoverImage, Birthday (time)
 organisers.ts:
     GET  /api/get_organiser_by_id/<id>
 volunteers.ts:

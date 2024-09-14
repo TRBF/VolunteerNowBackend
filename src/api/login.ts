@@ -3,6 +3,8 @@ import {open} from 'sqlite'
 import {Hono} from 'hono'
 import { success, fail } from './_success_wrapper';
 import {createHash} from 'crypto';
+import authorizeUser from './_user_helper';
+import sqlstring from 'sqlstring';
 
 
 function makeid(length : number) {
@@ -84,7 +86,26 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         await db.all("UPDATE users SET VerifyToken = NULL WHERE ID = ?", [db_result[0].ID]);
         return c.json(success(true));
     });
+    const valid_fields = ["DisplayName","Gender","FirstName","LastName","Email","Description","LinkToPFP","LinkToCoverImage","Birthday"];
     app.post("/api/modify_profile", async (c) => {
-
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        const params_to_change = await c.req.json();
+        var query = "UPDATE event_applications SET ";
+        
+        var first_param = true;
+        for (const parameter of valid_fields) {
+            if(params_to_change[parameter] != null) {
+                if(!first_param)
+                    query += ", ";
+                query += parameter + " = " + sqlstring.escape(params_to_change[parameter]) + " ";
+                first_param = false;
+            }
+        }
+        query += "WHERE ID = " + userdata.ID;
+        await db.exec(query);
+        return c.json(success(true));
     });
 }
