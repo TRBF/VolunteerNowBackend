@@ -11,6 +11,7 @@ import regep_notifications from './api/notifications'
 import regep_organisers from './api/organisers'
 import regep_serach from './api/search'
 import regep_apps from './api/applications'
+import regep_assets from './assets/assets'
 
 import nodemailer from 'nodemailer'
 import { cors } from 'hono/cors'
@@ -38,6 +39,7 @@ async function main() {
     regep_organisers(app, database)
     regep_serach(app, database)
     regep_apps(app, database)
+    regep_assets(app, database)
 
 
     const port = 3000

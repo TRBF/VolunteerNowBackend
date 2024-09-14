@@ -36,7 +36,7 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
             token = makeid(64);
             await db.run("UPDATE users SET Token = ? WHERE ID = ?", [token, db_result[0].ID]);
         }
-        return c.json(success({token: token}));
+        return c.json(success({token: token, userid: db_result[0].ID}));
     });
     app.post('/api/register', async (c) => {
         try {
