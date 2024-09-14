@@ -19,7 +19,7 @@ experience.ts:
     GET  /api/get_experience_by_id/<int:id>
     POST /api/add_experience:
                     - header: 'authorization: <token>'
-                    - POST parameters (json object with fields): name, description, location, time
+                    - POST parameters (json object with fields): name, description, location, time, (optional) diploma
 login.ts:
     GET  /api/login?username&password:
                     - GET parameters: username, password
