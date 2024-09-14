@@ -13,6 +13,7 @@ import regep_serach from './api/search'
 import regep_apps from './api/applications'
 
 import nodemailer from 'nodemailer'
+import { cors } from 'hono/cors'
 
 async function main() {
     const database = await open({
@@ -28,6 +29,7 @@ async function main() {
     });
 
     const app = new Hono()
+    app.use('/api/*', cors())
     regep_auth(app, database, mailTransporter)
     regep_experiences(app, database)
     regep_events(app, database)
