@@ -84,7 +84,7 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         const db_result = await db.all("SELECT ID FROM users WHERE VerifyToken = ?", [vtoken]);
         if(db_result.length == 0) return c.json(fail("invalid verification token"));
         await db.all("UPDATE users SET VerifyToken = NULL WHERE ID = ?", [db_result[0].ID]);
-        return c.json(success(true));
+        return c.json(success("your account has been verified. you can now log in."));
     });
     const valid_fields = ["DisplayName","Gender","FirstName","LastName","Email","Description","LinkToPFP","LinkToCoverImage","Birthday"];
     app.post("/api/modify_profile", async (c) => {
