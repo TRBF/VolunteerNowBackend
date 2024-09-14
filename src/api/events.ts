@@ -51,11 +51,14 @@ export default function(app : Hono, db : Database) {
         const parse_id = parseInt(id);
         if(isNaN(parse_id)) return c.json(fail("invalid id"));
         // check if event's status is 0 and is owned by current user
-        if((await db.all("SELECT ev.ID FROM events ev INNER JOIN event_organisers org ON org.EventID = ev.ID WHERE ev.ID = ? AND ev.Status = 0 AND org.OrganiserID = ?", [parse_id, userdata.ID])).length == 0)
+        const db_result = await db.all("SELECT ev.Time FROM events ev INNER JOIN event_organisers org ON org.EventID = ev.ID WHERE ev.ID = ? AND ev.Status = 0 AND org.OrganiserID = ?", [parse_id, userdata.ID]);
+        if(db_result.length == 0)
             return c.json(fail("the event doesn't exist or you don't partake the organisers team or it is already marked as finished"));
         await db.run("UPDATE events SET Status = 1 WHERE ID = ?", [parse_id]);
+        // calculate number of days
+        var days = Math.floor((new Date().getTime() - db_result[0].Time * 1000) / 24 * 60 * 60 * 1000);
         // add experience for all users
-        await db.run("INSERT INTO experiences (EventID,VolunteerID) SELECT v.EventID, v.VolunteerID FROM event_volunteers v WHERE v.EventID = ?", [parse_id]);
+        await db.run("INSERT INTO experiences (EventID,VolunteerID,Days) SELECT v.EventID, v.VolunteerID, ? FROM event_volunteers v WHERE v.EventID = ?", [days, parse_id]);
         return c.json(success(true));
     });
 

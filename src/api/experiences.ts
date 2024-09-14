@@ -28,10 +28,12 @@ export default function(app : Hono, db : Database) {
         if(userdata == null) return c.json(fail("invalid token"));
         if(userdata.AccountType != 0) return c.json(fail("operation not supported for your account type"));
         try {
-            const {name, description, location, time} = await c.req.json();
-            if(name == null || description == null || location == null || time == null)
+            const {name, description, location, time, days} = await c.req.json();
+            if(name == null || description == null || location == null || time == null || days == null)
                 return c.json(fail("invalid json parameters"));
-            await db.run("INSERT INTO experiences (Name,Description,Location,Time,VolunteerID) VALUES (?,?,?,?,?)", [name, description, location, time, userdata.ID]);
+            if(isNaN(parseInt(time)) || isNaN(parseInt(days)))
+                return c.json(fail("invalid json parameters"));
+            await db.run("INSERT INTO experiences (Name,Description,Location,Time,Days,VolunteerID) VALUES (?,?,?,?,?,?)", [name, description, location, time, days, userdata.ID]);
             return c.json(success(true));
         } catch {
             return c.json(fail("invalid json"));

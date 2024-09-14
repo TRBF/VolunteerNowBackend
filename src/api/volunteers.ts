@@ -8,7 +8,7 @@ export default function(app : Hono, db : Database) {
         const {id} = c.req.param();
         const parse_id = parseInt(id);
         if(isNaN(parse_id)) return c.json(fail("invalid id"));
-        const db_result = await db.all("SELECT * FROM users WHERE ID = ?", [parse_id]);
+        const db_result = await db.all("SELECT user.*, SUM(exp.Days) as DaysOfVolunteering FROM users user INNER JOIN experiences exp ON exp.VolunteerID = user.ID WHERE user.ID = ?", [parse_id]);
         if(db_result.length == 0) return c.json(fail("no user with that id"));
         if(db_result[0].AccountType != 0) return c.json(fail("that user is not a volunteer"));
         return c.json(success(db_result[0]));
