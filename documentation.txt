@@ -1,12 +1,18 @@
 Code documentation, backend:
 
+general response format:
+{success:true, result:<object>} OR {success:false,error:"<error message>"}
 everywhere there is time: unix timestamp                    
 events.ts:
     GET  /api/get_events?page: 
                     - parameters: page (optional)
+    GET  /api/get_event_by_id/<int:event_id>
     POST /api/add_event:
                     - header: 'authorization: <token>'
                     - POST parameters (json object with fields): name, description, link_to_pfp, link_to_cover_image, edition, location, time
+    GET  /api/mark_event_as_done/<int:event_id>: (only user from organising team can do this)
+                    - header: 'authorization: <token>'
+    GET  /api/get_organisers_of_event/<int:event_id>
 experience.ts:
     GET  /api/get_experiences?userid:
                     - GET parameters: userid
@@ -18,7 +24,7 @@ login.ts:
     GET  /api/login?username&password:
                     - GET parameters: username, password
     POST /api/register:
-                    - POST parameters (json object with fields): username, password, gender, first_name, last_name, email
+                    - POST parameters (json object with fields): username, password, gender, first_name, last_name, email, birthday
     GET  /api/verify/<vtoken>
 organisers.ts:
     GET  /api/get_organiser_by_id/<id>
@@ -36,3 +42,27 @@ search.ts:
     GET  /api/search_events/<search_term>
     GET  /api/search_organisers/<search_term>
     GET  /api/serach_volunteers/<search_term>
+applications.ts:
+    - note: application status can be: 0 (pending), 1 (accepted), 2 (rejected)
+    POST  /api/modify_application_form/<int:event_id>:
+                    - header: 'authorization: <token>'
+                    - POST parameters are to be passed in json format
+                    - all POST parameters are optional, only the ones present will be modified
+                    - if application form doesn't exist yet, it will be created automatically
+                    - POST parameters: Question[1 .. 15] (eg. Question1, Question10, Question7)
+                    - POST parameters: Open
+    GET  /api/get_application_for/<int:event_id>
+    POST /api/apply/<int:event_id>:
+                    - header: 'authorization: <token>'
+                    - POST parameters: same story as /api/modify_application_form/, but field Open doesn't exist
+    GET  /api/get_applications/<int:event_id>:
+                    - header: 'authorization: <token>'
+    GET  /api/get_application/<int:application_id>:
+                    - header: 'authorization: <token>'
+    GET  /api/accept_application/<int:application_id>:
+                    - header: 'authorization: <token>'
+    POST /api/reject_application/<int:application_id>:
+                    - header: 'authorization: <token>'
+    GET  /api/reopen_application/<int:application_id>:
+                    - header: 'authorization: <token>'
+                    - note: can only be used on rejected applications

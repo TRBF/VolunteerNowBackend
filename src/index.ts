@@ -10,6 +10,7 @@ import regep_volunteers from './api/volunteers'
 import regep_notifications from './api/notifications'
 import regep_organisers from './api/organisers'
 import regep_serach from './api/search'
+import regep_apps from './api/applications'
 
 import nodemailer from 'nodemailer'
 
@@ -34,6 +35,7 @@ async function main() {
     regep_notifications(app, database)
     regep_organisers(app, database)
     regep_serach(app, database)
+    regep_apps(app, database)
 
 
     const port = 3000

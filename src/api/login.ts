@@ -38,8 +38,18 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
     });
     app.post('/api/register', async (c) => {
         try {
-            const {username, password, gender, first_name, last_name, email} = await c.req.json();
-            if(username == null || password == null || gender == null || first_name == null || last_name == null || email == null) return c.json(fail("invalid json parameters"));
+            const {username, password, gender, first_name, last_name, email, birthday} = await c.req.json();
+            if(username == null || password == null || gender == null || first_name == null || last_name == null || email == null || birthday == null) return c.json(fail("invalid json parameters"));
+            const parse_birthday = parseInt(birthday);
+            if(isNaN(parse_birthday)) return c.json(fail("invalid birthday"));
+            // check for age
+            var birthdate = new Date(birthday * 1000), nowdate = new Date();
+            var age = nowdate.getFullYear() - birthdate.getFullYear() - 1;
+            if(birthdate.getMonth() > nowdate.getMonth())
+                age += 1;
+            else if(birthdate.getDay() >= nowdate.getDay())
+                age += 1;
+            if(age < 13) return c.json(fail("you must be 13 or older to sign up"));
             // check username valid
             if(!(/^[a-z0-9.]+$/.test(username))) return c.json(fail("invalid username"));
             if(!(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email))) return c.json(fail("invalid email"));
@@ -53,7 +63,7 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
             var pass_hash = createHash('sha256').update(password + pass_salt).digest('hex');
             // create account verification token
             var verifyToken = makeid(64);
-            await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName,CreationDate) VALUES (?,?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name, new Date().getTime() / 1000]);
+            await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName,Birthday,CreationDate) VALUES (?,?,?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name, Math.floor(new Date().getTime() / 1000)]);
             // send email
             mailTransporter.sendMail({
                 from: 'volunteernowwastaken@gmail.com',
@@ -73,5 +83,8 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         if(db_result.length == 0) return c.json(fail("invalid verification token"));
         await db.all("UPDATE users SET VerifyToken = NULL WHERE ID = ?", [db_result[0].ID]);
         return c.json(success(true));
+    });
+    app.post("/api/modify_profile", async (c) => {
+
     });
 }
