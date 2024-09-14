@@ -5,10 +5,9 @@ import {success, fail} from './_success_wrapper'
 import authorizeUser from './_user_helper'
 
 export default function(app : Hono, db : Database) {
-    app.get('/api/get_experiences', async (c) => {
-        const {userid} = c.req.query();
-        if(userid == null) return c.json(fail("invalid query parameters"));
-        var userid_parsed = parseInt(userid);
+    app.get('/api/get_experiences/:id', async (c) => {
+        const {id} = c.req.param();
+        var userid_parsed = parseInt(id);
         if(isNaN(userid_parsed)) return c.json(fail("invalid userid"));
         const db_result = await db.all("SELECT * FROM experiences WHERE VolunteerID = ?", [userid_parsed]);
         return c.json(success(db_result));
