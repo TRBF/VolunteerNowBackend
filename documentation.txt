@@ -70,3 +70,5 @@ applications.ts:
     GET  /api/reopen_application/<int:application_id>:
                     - header: 'authorization: <token>'
                     - note: can only be used on rejected applications
+    GET  /api/my_applications:
+                    - header: 'authorization: <token>'

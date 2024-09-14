@@ -160,5 +160,13 @@ export default function(app : Hono, db : Database) {
         await db.run("INSERT INTO notifications (EmmiterID,TargetID,Title,Message) VALUES (?,?,?,?)",[userdata.ID, db_result[0].applicantID, "Application re-opened", `Your application for ${db_result[0].eventName} has been re-opened. It is now in pending state again and is awaiting review.`]);
         return c.json(success(true));
     });
+    app.get("/api/my_applications", async (c) => {
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        if(userdata.AccountType != 0) return c.json(fail("operation not supported for your account type"));
+        return c.json(success(await db.all("SELECT app.Status as Status, event.Name as Name, event.LinkToPFP as LinkToPFP FROM applications app INNER JOIN events event on event.ID = app.EventID WHERE app.ApplicantID = ?", [userdata.ID])));
+    });
 
 }
