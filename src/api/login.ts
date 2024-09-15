@@ -65,7 +65,7 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
             var pass_hash = createHash('sha256').update(password + pass_salt).digest('hex');
             // create account verification token
             var verifyToken = makeid(64);
-            await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName,Birthday,CreationDate) VALUES (?,?,?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name, Math.floor(new Date().getTime() / 1000)]);
+            await db.run("INSERT INTO users (Username,PassHash,PassSalt,VerifyToken,Email,Gender,FirstName,LastName,Birthday,CreationDate) VALUES (?,?,?,?,?,?,?,?,?,?)", [username, pass_hash, pass_salt, verifyToken, email, gender, first_name, last_name, birthday, Math.floor(new Date().getTime() / 1000)]);
             // send email
             mailTransporter.sendMail({
                 from: 'volunteernowwastaken@gmail.com',
