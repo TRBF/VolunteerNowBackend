@@ -3,6 +3,7 @@ import {open} from 'sqlite'
 import {Hono} from 'hono'
 import {success, fail} from './_success_wrapper'
 import authorizeUser from './_user_helper'
+import sqlstring from 'sqlstring'
 
 export default function(app : Hono, db : Database) {
     app.get('/api/get_experiences/:id', async (c) => {
@@ -37,5 +38,49 @@ export default function(app : Hono, db : Database) {
         } catch {
             return c.json(fail("invalid json"));
         }
+    });
+    const valid_fields = ["Name", "Description", "Location", "Time", "Days", "Diploma"];
+    app.post("/api/modify_expereince/:id", async (c) => {
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        if(userdata.AccountType != 0) return c.json(fail("operation not supported for your account type"));
+        const {id} = c.req.param();
+        const parse_id = parseInt(id);
+        if(isNaN(parse_id)) return c.json(fail("invalid id"));
+        // check if user owns experience and is not managed by us
+        if((await db.all("SELECT ID FROM expereinces WHERE ID = ? AND VolunteerID = ? AND EventID = NULL", [parse_id, userdata.ID])).length == 0)
+            return c.json(fail("operation not available for that experience"));
+        const params_to_change = await c.req.json();
+        var query = "UPDATE experiences SET ";
+        
+        var first_param = true;
+        for (const parameter of valid_fields) {
+            if(params_to_change[parameter] != null) {
+                if(!first_param)
+                    query += ", ";
+                query += parameter + " = " + sqlstring.escape(params_to_change[parameter]) + " ";
+                first_param = false;
+            }
+        }
+        query += "WHERE ID = " + parse_id;
+        await db.exec(query);
+        return c.json(success(true));
+    });
+    app.get("/api/delete_experience/:id", async (c) => {
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        if(userdata.AccountType != 0) return c.json(fail("operation not supported for your account type"));
+        const {id} = c.req.param();
+        const parse_id = parseInt(id);
+        if(isNaN(parse_id)) return c.json(fail("invalid id"));
+        // check if user owns experience and is not managed by us
+        if((await db.all("SELECT ID FROM expereinces WHERE ID = ? AND VolunteerID = ? AND EventID = NULL", [parse_id, userdata.ID])).length == 0)
+            return c.json(fail("operation not available for that experience"));
+        await db.run("DELETE FROM expereinces WHERE ID = ?", [parse_id]);
+        return c.json(success(true));
     });
 }
