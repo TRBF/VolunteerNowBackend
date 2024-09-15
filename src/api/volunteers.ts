@@ -13,7 +13,7 @@ export default function(app : Hono, db : Database) {
         if(db_result[0].DaysOfVolunteering == null) {
             db_result = await db.all("SELECT user.*, 0 as DaysOfVolunteering FROM users user WHERE user.ID = ?", [parse_id]);
         }
-        if(db_result[0].AccountType == null) return c.json(fail("invalid user"));
+        if(db_result[0] == null) return c.json(fail("invalid user"));
         if(db_result[0].AccountType != 0) return c.json(fail("that user is not a volunteer"));
         delete db_result[0].PassHash;
         delete db_result[0].PassSalt;
