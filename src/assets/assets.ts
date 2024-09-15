@@ -15,7 +15,6 @@ export default function (app : Hono, db : Database)
         if(authorization == null) return c.json(fail("invalid request"));
         const userdata = await authorizeUser(db, authorization);
         if(userdata == null) return c.json(fail("invalid token"));
-        console.log(c.req.raw);
         const body = await c.req.parseBody();
         if(body.file == null) return c.json(fail("no file is present"));
         console.log("new file: " + body.file);
