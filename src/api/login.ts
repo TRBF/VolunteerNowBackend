@@ -108,6 +108,22 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         await db.exec(query);
         return c.json(success(true));
     });
+    app.post("/api/change_password", async (c) => {
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        const {password} = await c.req.json();
+        if(password == null) return c.json(fail("invalid json parameters"));
+        // create new salt
+        var passSalt = makeid(12);
+        var passHash = createHash('sha256').update(password + passSalt).digest('hex');
+        // generate new token
+        var newToken = makeid(64);
+        // update in database
+        await db.run("UPDATE users SET PassHash = ?, PassSalt = ?, Token = ? WHERE ID = ?", [passHash, passSalt, newToken, userdata.ID]);
+        return c.json(success({token: newToken}));
+    });
     app.get("/api/my_profile", async (c) => {
         const {authorization} = c.req.header();
         if(authorization == null) return c.json(fail("invalid request"));
