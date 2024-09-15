@@ -71,7 +71,7 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
                 from: 'volunteernowwastaken@gmail.com',
                 to: email,
                 subject: 'Verify your email address',
-                text: `Please verify your account by visiting the following link: http://188.214.88.101/api/verify/${verifyToken}`
+                text: `Please verify your account by visiting the following link: https://api.volunteernow.ro/api/verify/${verifyToken}`
             });
             return c.json(success(true));
         } catch {
