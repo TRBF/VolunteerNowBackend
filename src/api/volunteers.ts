@@ -8,9 +8,11 @@ export default function(app : Hono, db : Database) {
         const {id} = c.req.param();
         const parse_id = parseInt(id);
         if(isNaN(parse_id)) return c.json(fail("invalid id"));
-        const db_result = await db.all("SELECT user.*, SUM(exp.Days) as DaysOfVolunteering FROM users user INNER JOIN experiences exp ON exp.VolunteerID = user.ID WHERE user.ID = ?", [parse_id]);
+        var db_result = await db.all("SELECT user.*, SUM(exp.Days) as DaysOfVolunteering FROM users user INNER JOIN experiences exp ON exp.VolunteerID = user.ID WHERE user.ID = ?", [parse_id]);
         if(db_result.length == 0) return c.json(fail("no user with that id"));
-        console.log(db_result);
+        if(db_result[0].DaysOfVolunteering == null) {
+            db_result = await db.all("SELECT user.*, 0 as DaysOfVolunteering FROM users user WHERE user.ID = ?", [parse_id]);
+        }
         if(db_result[0].AccountType != 0) return c.json(fail("that user is not a volunteer"));
         delete db_result[0].PassHash;
         delete db_result[0].PassSalt;
