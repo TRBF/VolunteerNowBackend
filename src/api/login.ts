@@ -86,14 +86,14 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         await db.all("UPDATE users SET VerifyToken = NULL WHERE ID = ?", [db_result[0].ID]);
         return c.json(success("your account has been verified. you can now log in."));
     });
-    const valid_fields = ["DisplayName","Gender","FirstName","LastName","Email","Description","LinkToPFP","LinkToCoverImage","Birthday"];
+    const valid_fields = ["Username","DisplayName","Gender","FirstName","LastName","Email","Description","LinkToPFP","LinkToCoverImage","Birthday"];
     app.post("/api/modify_profile", async (c) => {
         const {authorization} = c.req.header();
         if(authorization == null) return c.json(fail("invalid request"));
         const userdata = await authorizeUser(db, authorization);
         if(userdata == null) return c.json(fail("invalid token"));
         const params_to_change = await c.req.json();
-        var query = "UPDATE event_applications SET ";
+        var query = "UPDATE users SET ";
         
         var first_param = true;
         for (const parameter of valid_fields) {
