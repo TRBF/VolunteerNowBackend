@@ -108,4 +108,16 @@ export default function(app : Hono, db : Database, mailTransporter : any) {
         await db.exec(query);
         return c.json(success(true));
     });
+    app.get("/api/my_profile", async (c) => {
+        const {authorization} = c.req.header();
+        if(authorization == null) return c.json(fail("invalid request"));
+        const userdata = await authorizeUser(db, authorization);
+        if(userdata == null) return c.json(fail("invalid token"));
+        const db_result = await db.all("SELECT * FROM users WHERE ID = ?", [userdata.ID]);
+        delete db_result[0].PassHash;
+        delete db_result[0].PassSalt;
+        delete db_result[0].Token;
+        delete db_result[0].VerifyToken;
+        return c.json(success(db_result[0]));
+    });
 }
