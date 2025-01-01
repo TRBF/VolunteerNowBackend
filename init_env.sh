@@ -1,13 +1,13 @@
 #!/usr/bin/bash 
 
-if [ ${BASH_SOURCE[0]} != ${0} ]; then
+if [ ${bash_source[0]} != ${0} ]; then
     source venv/bin/activate
     # clear
     
-    unset neovim kewlPrint
+    unset neovim kewlprint
 
     neovim=1 
-    kewlPrint=1
+    kewlprint=1
 
     while getopts "nf" flag; do
         case "${flag}" in
@@ -16,16 +16,16 @@ if [ ${BASH_SOURCE[0]} != ${0} ]; then
               neovim=$neovim_var
             ;;
             f)
-              kewlPrint_var=0
-              kewlPrint=$kewlPrint_var
+              kewlprint_var=0
+              kewlprint=$kewlprint_var
             ;;
         esac
     done
 
-    echo "KewlPrint is ${kewlPrint}"
-    echo "Nvim is ${neovim}"
+    echo "kewlprint is ${kewlprint}"
+    echo "nvim is ${neovim}"
 
-    if [ ${kewlPrint} -eq 1 ]; then 
+    if [ ${kewlprint} -eq 1 ]; then 
       message=$(cat ~/.res/venv_message) 
       for (( i = 0; i<${#message}; i++)); do 
           echo -n "${message:$i:1}"
@@ -33,7 +33,7 @@ if [ ${BASH_SOURCE[0]} != ${0} ]; then
       done
 
       echo ""
-      message="GODSPEED GENTLEMEN!!!"
+      message="godspeed gentlemen!!!"
 
       for (( i = 0; i<${#message}; i++)); do 
           echo "${message:$i:1}"
@@ -47,8 +47,8 @@ if [ ${BASH_SOURCE[0]} != ${0} ]; then
 
     fi
 
-    if [ ${kewlPrint} == 0 ]; then 
-      echo "Fast initiated venv."
+    if [ ${kewlprint} == 0 ]; then 
+      echo "fast initiated venv."
     fi
     
     if [ ${neovim} -eq 1 ]; then
@@ -56,8 +56,8 @@ if [ ${BASH_SOURCE[0]} != ${0} ]; then
     fi
 fi
 
-if [ ${BASH_SOURCE[0]} == ${0} ]; then
-   p="Please run this script either with \"source init_env.sh\" or \". ./init_env.sh\"" 
+if [ ${bash_source[0]} == ${0} ]; then
+   p="please run this script either with \"source init_env.sh\" or \". ./init_env.sh\"" 
    echo "${p}"
 fi
 
