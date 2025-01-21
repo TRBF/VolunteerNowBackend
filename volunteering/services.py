@@ -1,13 +1,10 @@
-from typing import List
 from django.db import models
 from django.http.response import Http404
 from rest_framework import serializers
 import typing
 
-from rest_framework.views import exception_handler
 from .models import User, Opportunity, Participation, Callout, Application, UserAddedParticipation, Question
 from api.serializers import OpportunitySerializer, UserSerializer, ParticipationSerializer, CalloutSerializer, ApplicationSerializer, QuestionSerializer, UserAddedParticipationSerializer
-from django.contrib.postgres.search import SearchVector
 
 M = typing.TypeVar("M", bound=type[models.base.Model])
 S = typing.TypeVar("S", bound=serializers.SerializerMetaclass)
@@ -131,16 +128,17 @@ class UserService(BaseService):
 
     def update_user_pfp(self, user_id, request):
         user: User = self.get_with_pk(user_id)
+        print("PFP!!!", request.data["profile_picture"])
         
         if user.profile_picture:
             user.profile_picture.delete(save = False)
 
-        try: 
-            user.profile_picture = request.FILES["profile_picture"]
-            user.save()
-            return("Success!")
-        except:
-            return("User not found (probably).")
+        # try: 
+        user.profile_picture = request.data["profile_picture"]
+        user.save()
+        return("Success!")
+        # except:
+            # return("User not found (probably).")
         
 
 

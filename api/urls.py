@@ -81,4 +81,10 @@ urlpatterns = [
     path('search_tag/<str:tag>', views.search_tag),
     path('feed/', views.feed),
 
+    # --- AUTHENTICATION --- 
+    # path('register/', views.register),
+    # path('login/', views.login),
+    # path('forgot_password', views.forgot_password),
+    # path('reset_password', views.reset_password)
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

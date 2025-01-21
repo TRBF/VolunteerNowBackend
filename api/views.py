@@ -1,8 +1,5 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view 
-from api.serializers import UserSerializer
-from volunteering import services
-from volunteering.models import Participation
 from volunteering.services import OpportunityService, ParticipationService, QuestionService, SearchService, UserService, CalloutService, UserAddedParticipationService, ApplicationService, UserToCalloutService
 
 
@@ -89,13 +86,15 @@ def add_user(request):
 @api_view(['PUT'])
 def update_user(request, id):
     service = UserService()
+    print("Request: ", request)
     response = Response(service.update(id, request.data))
     return response
 
 @api_view(['PUT'])
 def update_user_pfp(request, id):
     service = UserService()
-    if(request.FILES.get("profile_picture")):
+    print(request.data["profile_picture"])
+    if(request.data["profile_picture"]):
         return Response(service.update_user_pfp(id, request))
     else:
         return Response("update_pfp() was called without a profile picture.")
