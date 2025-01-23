@@ -1,10 +1,13 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.http.response import Http404
 from rest_framework import serializers
 import typing
 
-from .models import User, Opportunity, Participation, Callout, Application, UserAddedParticipation, Question
-from api.serializers import OpportunitySerializer, UserSerializer, ParticipationSerializer, CalloutSerializer, ApplicationSerializer, QuestionSerializer, UserAddedParticipationSerializer
+from rest_framework.relations import ObjectTypeError
+
+from .models import UserProfile, Opportunity, Participation, Callout, Application, UserAddedParticipation, Question
+from api.serializers import OpportunitySerializer, UserProfileSerializer, ParticipationSerializer, CalloutSerializer, ApplicationSerializer, QuestionSerializer, UserAddedParticipationSerializer, UserSerializer
 
 M = typing.TypeVar("M", bound=type[models.base.Model])
 S = typing.TypeVar("S", bound=serializers.SerializerMetaclass)
@@ -42,11 +45,11 @@ class BaseService(typing.Generic[M, S]):
         serializer = self._serializer(data=request_data)
         print(f'\nData: {request_data}')
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            return self._serializer(instance).data
         else:
             print(serializer.errors)
-        
-        return serializer.data
+            return serializer.errors
 
     def update(self, pk, object_data):
         return self._model.objects.filter(pk=pk).update(**object_data)
@@ -110,7 +113,12 @@ class ParticipationService(BaseService):
 class UserService(BaseService):
     
     def __init__(self):
-        super().__init__(User, UserSerializer)
+        super().__init__(Participation, ParticipationSerializer)
+
+class UserProfileService(BaseService):
+    
+    def __init__(self):
+        super().__init__(UserProfile, UserProfileSerializer)
 
     def get_user_opportunities(self, user_id):
         participationService = ParticipationService()
@@ -121,13 +129,13 @@ class UserService(BaseService):
         return opportunities 
 
     def get_user_callouts(self, user_id):
-        user: User = self.get_with_pk(user_id)
+        user: UserProfile = self.get_with_pk(user_id)
 
         return user.callout_set.all() 
 
 
     def update_user_pfp(self, user_id, request):
-        user: User = self.get_with_pk(user_id)
+        user: UserProfile = self.get_with_pk(user_id)
         print("PFP!!!", request.data["profile_picture"])
         
         if user.profile_picture:
@@ -143,7 +151,7 @@ class UserService(BaseService):
 
 
     def update_user_cover(self, user_id, request):
-        user: User = self.get_with_pk(user_id)
+        user: UserProfile = self.get_with_pk(user_id)
         
         if user.cover_image:
             user.cover_image.delete(save = False)
@@ -162,7 +170,7 @@ class OpportunityService(BaseService):
 
     def get_opportunity_volunteers(self, opportunity_id):
         participationService = ParticipationService()
-        userService = UserService()
+        userService = UserProfileService()
         participations = participationService.get_where(opportunity_id=opportunity_id, role="volunteer") 
         users = [userService.get_with_pk(participation.user_id) for participation in participations]
 
@@ -170,7 +178,7 @@ class OpportunityService(BaseService):
 
     def get_opportunity_organisers(self, opportunity_id):
         participationService = ParticipationService()
-        userService = UserService()
+        userService = UserProfileService()
         participations = participationService.get_where(opportunity_id=opportunity_id, role="organiser") 
         organisers = [userService.get_with_pk(participation.user_id) for participation in participations]
 
@@ -254,7 +262,7 @@ class UserAddedParticipationService(BaseService):
 class SearchService:
 
     def search(self, query):
-        userService = UserService()
+        userService = UserProfileService()
         
         results = list() 
         results.append(userService.serialize(userService.search(query, "istartswith", "username", "first_name", "last_name", "name")))
@@ -262,7 +270,7 @@ class SearchService:
         return results
     
     def search_tag(self, tag):
-        userService = UserService()
+        userService = UserProfileService()
         
         results = list() 
         results.append(userService.serialize(userService.search(tag, "istartswith", "username", "first_name", "last_name")))

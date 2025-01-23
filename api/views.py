@@ -1,8 +1,14 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view 
-from volunteering.services import OpportunityService, ParticipationService, QuestionService, SearchService, UserService, CalloutService, UserAddedParticipationService, ApplicationService, UserToCalloutService
+from rest_framework.decorators import api_view, authentication_classes 
+from volunteering.models import UserProfile
+from volunteering.services import OpportunityService, ParticipationService, QuestionService, SearchService, UserProfileService, CalloutService, UserAddedParticipationService, ApplicationService, UserService, UserToCalloutService
+from rest_framework.authtoken.models import Token
 
-
+@api_view(['GET'])
+def testingToken(request, id):
+    userService = UserProfileService()
+    token = Token.objects.create(user=userService.get_with_pk(id))
+    return Response(token.key) 
 
 # ----------- OPPORTUNITY ----------
 
@@ -80,32 +86,13 @@ def get_user_by_username(request, username):
 @api_view(['POST'])
 def add_user(request):
     service = UserService()
-    response = Response(service.add_from_request_data(request.data)) 
-    return response
+    return Response(service.serialize(service.add_from_request_data(request)))
 
 @api_view(['PUT'])
 def update_user(request, id):
     service = UserService()
-    print("Request: ", request)
     response = Response(service.update(id, request.data))
     return response
-
-@api_view(['PUT'])
-def update_user_pfp(request, id):
-    service = UserService()
-    print(request.data["profile_picture"])
-    if(request.data["profile_picture"]):
-        return Response(service.update_user_pfp(id, request))
-    else:
-        return Response("update_pfp() was called without a profile picture.")
-
-@api_view(['PUT'])
-def update_user_cover(request, id):
-    service = UserService()
-    if(request.FILES.get("cover_image")):
-        return Response(service.update_user_cover(id, request))
-    else:
-        return Response("update_user_cover() was called without a cover image.")
 
 @api_view(['DELETE'])
 def delete_user(request, id):
@@ -113,6 +100,44 @@ def delete_user(request, id):
     return Response(service.serialize(service.delete_with_pk(pk=id)))
 
 
+
+# ----------- USER PROFILE ----------
+
+@api_view(['PUT'])
+def update_user_profile_picture(request, id):
+    userService = UserService()
+    userProfileService = UserProfileService()
+    user = userService.get_with_pk(id)
+    print(request.data["profile_picture"])
+    if(request.data["profile_picture"]):
+        return Response(userProfileService.update_user_pfp(user.profile.id, request))
+    else:
+        return Response("update_pfp() was called without a profile picture.")
+
+@api_view(['PUT'])
+def update_user_cover(request, id):
+    userService = UserService()
+    userProfileService = UserProfileService()
+    user = userService.get_with_pk(id)
+    if(request.FILES.get("cover_image")):
+        return Response(userProfileService.update_user_cover(user.profile.id, request))
+    else:
+        return Response("update_user_cover() was called without a cover image.")
+
+@api_view(['PUT'])
+def update_user_profile(request, id):
+    userService = UserService()
+    userProfileService = UserProfileService()
+    user = userService.get_with_pk(id)
+    response = Response(userProfileService.update(user.profile.id, request.data))
+    return response
+
+@api_view(['GET'])
+def get_user_profile_by_id(request, id):
+    userService = UserService()
+    userProfileService = UserProfileService()
+    user = userService.get_with_pk(id)
+    return Response(userProfileService.serialize(user.profile))
 
 # ----------- CALLOUTS ----------
 
@@ -130,7 +155,7 @@ def get_callout_by_id(request, id):
 @api_view(['GET'])
 def get_callout_sender(request, id):
     calloutService = CalloutService()
-    userService = UserService()
+    userService = UserProfileService()
     callout = calloutService.get_with_pk(id)
     return Response(userService.serialize(callout.sender))
 
@@ -173,7 +198,7 @@ def get_volunteer_callouts(request, id):
 @api_view(['GET'])
 def get_callout_volunteers(request, id):
     utc_service = UserToCalloutService()
-    user_service = UserService()
+    user_service = UserProfileService()
     return Response(user_service.serialize(utc_service.get_where(callout=id)))
     
 @api_view(['POST'])
@@ -286,19 +311,19 @@ def delete_application(request, id):
 @api_view(['GET'])
 def get_opportunity_volunteers(request, id):
     opportunityService = OpportunityService()
-    userService = UserService()
+    userService = UserProfileService()
     return Response(userService.serialize(opportunityService.get_opportunity_volunteers(id)))
 
 @api_view(['GET'])
 def get_opportunity_organisers(request, id):
     opportunityService = OpportunityService()
-    userService = UserService()
+    userService = UserProfileService()
     return Response(userService.serialize(opportunityService.get_opportunity_organisers(id)))
 
 @api_view(['GET'])
 def get_user_opportunities(request, id):
     opportunityService = OpportunityService()
-    userService = UserService()
+    userService = UserProfileService()
     return Response(opportunityService.serialize(userService.get_user_opportunities(id)))
 
 @api_view(['GET'])

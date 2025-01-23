@@ -4,16 +4,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    # --- USERS --- 
+    # --- USER --- 
     path('get_user_by_id/<int:id>/', views.get_user_by_id),
-    path('get_volunteer_by_username/<str:username>/', views.get_user_by_username),
     path('add_user/', views.add_user),
-    path('update_user/<int:id>', views.update_user),
+    path('update_user/<int:id>/', views.update_user),
+    path('delete_user/<int:id>/', views.delete_user),
 
-    path('update_user_pfp/<int:id>', views.update_user_pfp),
-    path('update_user_cover/<int:id>', views.update_user_cover),
+    #--- PROFILE ---
+    path('get_user_profile_by_id/<int:id>/', views.get_user_profile_by_id),
+    path('update_user_pfp/<int:id>/', views.update_user_profile_picture),
+    path('update_user_cover/<int:id>/', views.update_user_cover),
+    path('update_user_profile/<int:id>/', views.update_user_profile),
 
-    # --- CALLOUTS ---
+    # --- CALLOUT ---
     path('get_callouts/', views.get_callouts),
     path('get_callout_by_id/<int:id>/', views.get_callout_by_id),
     path('get_callout_sender/<int:id>', views.get_callout_sender),
@@ -37,10 +40,6 @@ urlpatterns = [
 
     path('add_user_to_opportunity/', views.add_user_to_opportunity),
     path('delete_user_from_opportunity/<int:id>', views.delete_user_from_opportunity),
-
-    # --- PROFILE ---
-    path('get_profile/<int:id>', views.get_user_by_id),
-    path('edit_profile/<int:id>', views.update_user),
 
     # -- USER ADDED PARTICIPATIONS --
     path('get_user_added_participations/<int:id>/', views.get_user_added_participations),
@@ -80,6 +79,7 @@ urlpatterns = [
     path('search/<str:query>', views.search),
     path('search_tag/<str:tag>', views.search_tag),
     path('feed/', views.feed),
+    path('testing/<int:id>', views.testingToken)
 
     # --- AUTHENTICATION --- 
     # path('register/', views.register),

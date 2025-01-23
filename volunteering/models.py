@@ -1,29 +1,40 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone, tree 
+from django.contrib.auth.models import User
 
 def upload_to(instance, filename):
     return 'images/{filename}'.format(filename=filename)
 
-class User(models.Model):
-    username = models.CharField(max_length=64)
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
 
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
+
+class UserProfile(models.Model):
     first_name = models.CharField(max_length=200, blank=True)
     last_name = models.CharField(max_length=200, blank=True)
     name = models.CharField(max_length=200, blank=True)
 
     date_of_birth = models.DateField(default=timezone.localtime(timezone.now()).date()) # necessary?
-    gender = models.CharField(max_length=100, blank=True) # necessary?
+    gender = models.CharField(max_length=100, blank=True, null=True) # necessary?
 
-    account_creation_date = models.DateField(default=timezone.localtime(timezone.now()).date())
-
-    description = models.CharField(max_length=1000, blank=True)
+    description = models.CharField(max_length=1000, blank=True, null=True)
 
     account_type = models.CharField(max_length=200, blank=True)
-    profile_picture = models.ImageField(blank=True, upload_to=upload_to)
-    cover_image = models.ImageField(blank=True, upload_to=upload_to)
+    profile_picture = models.ImageField(blank=True, upload_to=upload_to, null=True)
+    cover_image = models.ImageField(blank=True, upload_to=upload_to, null=True)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 
     def __str__(self):
-        return f"User: @{self.username} ({self.first_name} {self.last_name})"
+        return f"User Profile: @{self.user.username} ({self.first_name} {self.last_name})"
 
 
 class Opportunity(models.Model):
@@ -48,7 +59,7 @@ class Callout(models.Model):
     description = models.CharField(max_length=300, blank=True)
     callout_picture = models.ImageField(blank=True, upload_to=upload_to)
 
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, blank=True)
+    sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE, blank=True)
 
     def __str__(self):
         return f"Callout: {self.title}, at {self.time}: {self.description}"
@@ -80,7 +91,7 @@ class UserAddedParticipation(models.Model):
 
     diploma = models.FileField(blank=True, upload_to="diplomas/")
     participation_picture = models.ImageField(blank=True, upload_to=upload_to)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
 # ------------------------------ HYBRID ------------------------------ 
 
@@ -90,9 +101,9 @@ class Participation(models.Model):
     time = models.DateTimeField(default=timezone.now)
     location = models.CharField(max_length=300, blank=True)
     description = models.CharField(max_length=1000, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE)
 
 class UserToCallout(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE) 
     callout = models.ForeignKey(Callout, on_delete=models.CASCADE) 

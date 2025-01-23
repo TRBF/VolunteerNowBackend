@@ -1,16 +1,23 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
-from volunteering.models import Opportunity, User, Callout, Participation, Application, Question, UserAddedParticipation, UserToCallout 
+from volunteering.models import Opportunity, UserProfile, Callout, Participation, Application, Question, UserAddedParticipation, UserToCallout 
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User 
+        fields = '__all__'
 
 class OpportunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Opportunity 
         fields = '__all__'
 
-class UserSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ImageField(required=False)
 
     class Meta:
-        model = User 
+        model = UserProfile 
         fields = '__all__'
 
 class CalloutSerializer(serializers.ModelSerializer):
