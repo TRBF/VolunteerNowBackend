@@ -113,7 +113,7 @@ class ParticipationService(BaseService):
 class UserService(BaseService):
     
     def __init__(self):
-        super().__init__(Participation, ParticipationSerializer)
+        super().__init__(User, UserSerializer)
 
 class UserProfileService(BaseService):
     
@@ -262,10 +262,12 @@ class UserAddedParticipationService(BaseService):
 class SearchService:
 
     def search(self, query):
-        userService = UserProfileService()
+        userService = UserService()
+        userProfileService = UserProfileService()
         
         results = list() 
-        results.append(userService.serialize(userService.search(query, "istartswith", "username", "first_name", "last_name", "name")))
+        results += userService.serialize(userService.search(query, "istartswith", "username", "first_name", "last_name"))
+        results += userProfileService.serialize(userProfileService.search(query, "istartswith", "description"))
     
         return results
     

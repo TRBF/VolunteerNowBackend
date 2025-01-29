@@ -2,20 +2,22 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.authtoken import views as auth 
 
 urlpatterns = [
+
     # --- USER --- 
     path('get_user_by_id/<int:id>/', views.get_user_by_id),
     path('add_user/', views.add_user),
-    path('update_user/<int:id>/', views.update_user),
+    path('update_user/', views.update_user),
     path('delete_user/<int:id>/', views.delete_user),
 
-    #--- PROFILE ---
+    # --- PROFILE ---
     path('get_user_profile_by_id/<int:id>/', views.get_user_profile_by_id),
-    path('update_user_pfp/<int:id>/', views.update_user_profile_picture),
-    path('update_user_cover/<int:id>/', views.update_user_cover),
-    path('update_user_profile/<int:id>/', views.update_user_profile),
-
+    path('update_user_pfp/', views.update_user_profile_picture),
+    path('update_user_cover/', views.update_user_cover),
+    path('update_user_profile/', views.update_user_profile),
+    
     # --- CALLOUT ---
     path('get_callouts/', views.get_callouts),
     path('get_callout_by_id/<int:id>/', views.get_callout_by_id),
@@ -39,7 +41,7 @@ urlpatterns = [
     path('update_opportunity_post_image/<int:id>', views.update_opportunity_post_image),
 
     path('add_user_to_opportunity/', views.add_user_to_opportunity),
-    path('delete_user_from_opportunity/<int:id>', views.delete_user_from_opportunity),
+    path('delete_user_from_opportunity/<int:id>/', views.delete_user_from_opportunity),
 
     # -- USER ADDED PARTICIPATIONS --
     path('get_user_added_participations/<int:id>/', views.get_user_added_participations),
@@ -79,12 +81,10 @@ urlpatterns = [
     path('search/<str:query>', views.search),
     path('search_tag/<str:tag>', views.search_tag),
     path('feed/', views.feed),
-    path('testing/<int:id>', views.testingToken)
 
-    # --- AUTHENTICATION --- 
-    # path('register/', views.register),
-    # path('login/', views.login),
-    # path('forgot_password', views.forgot_password),
-    # path('reset_password', views.reset_password)
+    # --- TOKEN ---
+    path('testing/', views.testing),
+    path('get_token/', auth.obtain_auth_token),
+    path('get_id/', views.get_id)
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

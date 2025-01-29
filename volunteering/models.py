@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone, tree 
 from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 def upload_to(instance, filename):
     return 'images/{filename}'.format(filename=filename)
@@ -16,12 +17,13 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 class UserProfile(models.Model):
-    first_name = models.CharField(max_length=200, blank=True)
-    last_name = models.CharField(max_length=200, blank=True)
-    name = models.CharField(max_length=200, blank=True)
-
+    name = models.CharField(max_length=1000, blank=True)
     date_of_birth = models.DateField(default=timezone.localtime(timezone.now()).date()) # necessary?
     gender = models.CharField(max_length=100, blank=True, null=True) # necessary?
 
@@ -34,7 +36,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 
     def __str__(self):
-        return f"User Profile: @{self.user.username} ({self.first_name} {self.last_name})"
+        return f"User Profile: @{self.user.username} ({self.user.first_name} {self.user.last_name})"
 
 
 class Opportunity(models.Model):
@@ -82,16 +84,16 @@ class UserAddedParticipation(models.Model):
     role = models.CharField(max_length=200) 
     organiser = models.CharField(max_length=200) 
 
-    location = models.CharField(max_length=500) 
+    location = models.CharField(max_length=500, blank=True) 
 
-    start_date = models.DateField(default=timezone.localtime(timezone.now()).date()) 
-    end_date = models.DateField(default=timezone.localtime(timezone.now()).date()) 
+    start_date = models.DateField(default=timezone.localtime(timezone.now()).date(), blank=True) 
+    end_date = models.DateField(default=timezone.localtime(timezone.now()).date(), blank=True) 
 
     description = models.CharField(max_length=1000) 
 
     diploma = models.FileField(blank=True, upload_to="diplomas/")
     participation_picture = models.ImageField(blank=True, upload_to=upload_to)
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 # ------------------------------ HYBRID ------------------------------ 
 
@@ -105,5 +107,5 @@ class Participation(models.Model):
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE)
 
 class UserToCallout(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, on_delete=models.CASCADE) 
     callout = models.ForeignKey(Callout, on_delete=models.CASCADE) 
