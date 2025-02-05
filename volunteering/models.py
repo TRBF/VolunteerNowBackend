@@ -30,7 +30,7 @@ class UserProfile(models.Model):
     description = models.CharField(max_length=1000, blank=True, null=True)
 
     account_type = models.CharField(max_length=200, blank=True)
-    profile_picture = models.ImageField(blank=True, upload_to=upload_to, null=True)
+    profile_picture = models.ImageField(blank=True, upload_to=upload_to, null=True, default="images/default_pfp.png")
     cover_image = models.ImageField(blank=True, upload_to=upload_to, null=True)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -57,14 +57,14 @@ class Opportunity(models.Model):
 
 class Callout(models.Model):
     title = models.CharField(max_length=200, blank=True)
-    time = models.DateTimeField(default=timezone.now)
     description = models.CharField(max_length=300, blank=True)
     callout_picture = models.ImageField(blank=True, upload_to=upload_to)
 
     sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE, blank=True)
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return f"Callout: {self.title}, at {self.time}: {self.description}"
+        return f"Callout: {self.title}: {self.description}"
 
 
 class Application(models.Model):
@@ -90,9 +90,10 @@ class UserAddedParticipation(models.Model):
     end_date = models.DateField(default=timezone.localtime(timezone.now()).date(), blank=True) 
 
     description = models.CharField(max_length=1000) 
+    hours = models.IntegerField(default=0, blank=True)
 
     diploma = models.FileField(blank=True, upload_to="diplomas/")
-    participation_picture = models.ImageField(blank=True, upload_to=upload_to)
+    participation_picture = models.ImageField(blank=True, upload_to=upload_to, default="images/default_uaimg.png")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 # ------------------------------ HYBRID ------------------------------ 
@@ -109,3 +110,5 @@ class Participation(models.Model):
 class UserToCallout(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE) 
     callout = models.ForeignKey(Callout, on_delete=models.CASCADE) 
+    time = models.DateTimeField(auto_now_add=True, null=True)
+

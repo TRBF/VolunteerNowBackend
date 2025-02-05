@@ -1,3 +1,5 @@
+from http.client import ResponseNotReady
+from operator import call
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes 
 from volunteering.models import UserProfile
@@ -6,13 +8,6 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication 
-
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def testing(request):
-    return Response('yee')
-
 
 # ----------- OPPORTUNITY ----------
 
@@ -118,7 +113,10 @@ def get_user_by_username(request, username):
 @api_view(['POST'])
 def add_user(request):
     userService = UserService()
-    return Response(userService.add_from_request_data(request.data))
+    if(request.user.is_superuser):
+        return Response(userService.add_from_request_data(request.data))
+    else:
+        return Response("Request denied. Insufficient permissions.")
 
 @api_view(['PUT'])
 @authentication_classes([TokenAuthentication])
@@ -184,7 +182,10 @@ def get_user_profile_by_id(request, id):
     userProfileService = UserProfileService()
     user = userService.get_with_pk(id)
     response = userProfileService.serialize(user.profile)
-    response.update({"first_name": user.first_name, "last_name": user.last_name, "username": user.username})
+    hours = userProfileService.get_user_hours(id)
+    most_fq = userProfileService.get_user_most_fq(id)
+    count = userProfileService.get_user_participations_count(id)
+    response.update({"first_name": user.first_name, "last_name": user.last_name, "username": user.username, "hours": hours, "most_fq": most_fq, "count": count})
     return Response(response)
 
 # ----------- CALLOUTS ----------
@@ -205,6 +206,21 @@ def get_callout_sender(request, id):
     userService = UserProfileService()
     callout = calloutService.get_with_pk(id)
     return Response(userService.serialize(callout.sender))
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def get_user_callouts(request):
+    utc_service = UserToCalloutService()
+    callout_service = CalloutService()
+    uTCs = utc_service.get_where(user=request.user.id)
+    response = []
+    for uTC in uTCs:
+        callout = callout_service.serialize(uTC.callout)
+        callout["time"] = uTC.time
+        response.append(callout)
+    return Response(response)
+    
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
@@ -310,8 +326,6 @@ def update_user_added_participation(request, id):
 @permission_classes([IsAuthenticated])
 def delete_user_added_participation(request, id):
     service = UserAddedParticipationService()
-    print("userid: ", request.user.id, "needed id: ", service.get_with_pk(id).user_id)
-    print("aaand: ", request.user.id == service.get_with_pk(id).user_id)
     if(request.user.id == service.get_with_pk(id).user_id):
         service = UserAddedParticipationService()
         response = Response(service.delete_with_pk(pk=id))
@@ -324,10 +338,9 @@ def delete_user_added_participation(request, id):
 @permission_classes([IsAuthenticated])
 def update_user_added_participation_picture(request, id):
     service = UserAddedParticipationService()
-    print("userid: ", request.user.id, "needed id: ", service.get_with_pk(id).user_id)
     if(request.user.id == service.get_with_pk(id).user_id):
         service = UserAddedParticipationService()
-        if(request.FILES.get("participation_picture")):
+        if(request.FILES.get("user_added_participation_picture")):
             return Response(service.update_participation_picture(id, request))
         else:
             return Response("update_participation_picture() was called without a profile picture.")
@@ -528,4 +541,18 @@ def add_application_question(request, id):
         return Response("Not yet implemented.")
     else:
         return Response("Request denied. Insufficient permissions.")
+
+
+
+# ----------- REGISTER ----------
+
+@api_view(['POST'])
+def register(request):
+    service = UserService()
+    return Response(service.add_from_request_data(request.data))
+
+@api_view(['GET'])
+def checkUsername(request, username):
+    service = UserService()
+    return Response(service.serialize(service.get_where(username=username)))
 

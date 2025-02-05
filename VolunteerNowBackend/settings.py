@@ -162,3 +162,14 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
+
+
+# SMTP Configuration
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'app@volunteernow.ro'
+EMAIL_HOST_PASSWORD = 'VolunteerNow42069.'
+DEFAULT_FROM_EMAIL = 'app@volunteernow.ro'

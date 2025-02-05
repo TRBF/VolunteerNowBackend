@@ -32,11 +32,6 @@ class CalloutSerializer(serializers.ModelSerializer):
         model = Callout 
         fields = '__all__'
 
-class UserToCalloutSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserToCallout 
-        fields = '__all__'
-
 class ParticipationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participation
@@ -55,4 +50,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 class UserAddedParticipationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAddedParticipation 
+        fields = '__all__'
+
+class UserToCalloutSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserToCallout 
         fields = '__all__'

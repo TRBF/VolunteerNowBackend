@@ -6,8 +6,8 @@ import typing
 
 from rest_framework.relations import ObjectTypeError
 
-from .models import UserProfile, Opportunity, Participation, Callout, Application, UserAddedParticipation, Question
-from api.serializers import OpportunitySerializer, UserProfileSerializer, ParticipationSerializer, CalloutSerializer, ApplicationSerializer, QuestionSerializer, UserAddedParticipationSerializer, UserSerializer
+from .models import UserProfile, Opportunity, Participation, Callout, Application, UserAddedParticipation, Question, UserToCallout
+from api.serializers import OpportunitySerializer, UserProfileSerializer, ParticipationSerializer, CalloutSerializer, ApplicationSerializer, QuestionSerializer, UserAddedParticipationSerializer, UserSerializer, UserToCalloutSerializer
 
 M = typing.TypeVar("M", bound=type[models.base.Model])
 S = typing.TypeVar("S", bound=serializers.SerializerMetaclass)
@@ -129,14 +129,62 @@ class UserProfileService(BaseService):
         return opportunities 
 
     def get_user_callouts(self, user_id):
+        service = CalloutService()
         user: UserProfile = self.get_with_pk(user_id)
-
         return user.callout_set.all() 
 
+    def get_user_hours(self, user_id):
+        service = UserAddedParticipationService()
+        opportunities = self.get_user_opportunities(user_id)
+        ua_opportunities = service.get_where(user=user_id) 
+        count = 0
 
+        for opportunity in opportunities:
+            count+=opportunity.hours 
+
+        for opportunity in ua_opportunities:
+            count+=opportunity.hours 
+
+        return count
+
+    def get_user_most_fq(self, user_id):
+        service = UserAddedParticipationService()
+        opportunities = self.get_user_opportunities(user_id)
+        ua_opportunities = service.get_where(user=user_id) 
+        
+        if(len(opportunities) == 0 and len(ua_opportunities) == 0):
+            return "Nothing"
+
+        freq = dict()
+        max = str() 
+        for opportunity in opportunities:
+            if not opportunity.organiser in freq:
+                freq[opportunity.organiser] = 0
+            freq[opportunity.organiser]+=1 
+            max = opportunity.organiser 
+
+        for opportunity in ua_opportunities:
+            if not opportunity.organiser in freq:
+                freq[opportunity.organiser] = 0
+            freq[opportunity.organiser]+=1 
+            max = opportunity.organiser 
+
+        for organiser in freq.keys():
+            if(freq[max]<freq[organiser]):
+                max = organiser 
+        
+        print("max: ", max)
+
+        return max 
+
+    def get_user_participations_count(self, user_id):
+        service = UserAddedParticipationService()
+        opportunities = self.get_user_opportunities(user_id)
+        ua_opportunities = service.get_where(user=user_id) 
+        return len(opportunities) + len(ua_opportunities)
+    
     def update_user_pfp(self, user_id, request):
         user: UserProfile = self.get_with_pk(user_id)
-        print("PFP!!!", request.data["profile_picture"])
         
         if user.profile_picture:
             user.profile_picture.delete(save = False)
@@ -240,7 +288,7 @@ class UserAddedParticipationService(BaseService):
             userAddedParticipation.participation_picture.delete(save = False)
 
         try: 
-            userAddedParticipation.participation_picture = request.FILES.get("participation_picture")
+            userAddedParticipation.participation_picture = request.FILES.get("user_added_participation_picture")
             userAddedParticipation.save()
             return("Success!")
         except:
@@ -300,7 +348,7 @@ class CalloutService(BaseService):
 class UserToCalloutService(BaseService):
     
     def __init__(self):
-        super().__init__(Participation, ParticipationSerializer)
+        super().__init__(UserToCallout, UserToCalloutSerializer)
 
     def send_callout_to_user(self, **request_data):
         return self.add_from_request_data(request_data)

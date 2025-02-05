@@ -3,6 +3,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views as auth 
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
@@ -20,6 +21,7 @@ urlpatterns = [
     
     # --- CALLOUT ---
     path('get_callouts/', views.get_callouts),
+    path('get_user_callouts/', views.get_user_callouts),
     path('get_callout_by_id/<int:id>/', views.get_callout_by_id),
     path('get_callout_sender/<int:id>', views.get_callout_sender),
     path('add_callout/', views.add_callout),
@@ -66,7 +68,7 @@ urlpatterns = [
     # --- USER TO CALLOUT ---
     path('get_volunteer_callouts/<int:id>', views.get_volunteer_callouts),
     path('get_callout_volunteers/<int:id>', views.get_callout_volunteers),
-    path('send_callout/<int:callout_id>/<int:user_id>', views.send_callout),
+    path('send_callout/<int:callout_id>/<int:user_id>/', views.send_callout),
 
     # --- RELATIONSHIPS ---
     path('get_opportunity_volunteers/<int:id>', views.get_opportunity_volunteers),
@@ -83,8 +85,17 @@ urlpatterns = [
     path('feed/', views.feed),
 
     # --- TOKEN ---
-    path('testing/', views.testing),
     path('get_token/', auth.obtain_auth_token),
-    path('get_id/', views.get_id)
+    path('get_id/', views.get_id),
+
+    # --- AUTH ---
+    path("reset_password/", auth_views.PasswordResetView.as_view(), name="reset_password"),
+    path("reset_password_sent/", auth_views.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
+    path("reset_password_complete/", auth_views.PasswordResetCompleteView.as_view(), name="password_reset_complete"),
+
+    # --- LOGIN ---
+    path('register/', views.register),
+    path('checkUsername/<str:username>', views.checkUsername),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
